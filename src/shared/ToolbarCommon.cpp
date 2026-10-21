@@ -48,6 +48,7 @@ int gLayoutButtonsCount = 0;
 ToolbarButtonInfo gCustomButtons[kMaxCustomButtons + 1];
 
 static int gCustomButtonsCount = 0;
+static bool gCustomButtonPlaced[kMaxCustomButtons + 1] = {};
 
 // Light theme ControlBackgroundColor is white, which is what the old themed
 // rebar/toolbar painted. Other themes use their control background.
@@ -103,7 +104,13 @@ bool HasToolbarButtonContent(const ToolbarButtonInfo& tbi) {
 }
 
 int TotalButtonsCount() {
-    return gLayoutButtonsCount + gCustomButtonsCount;
+    int unplaced = 0;
+    for (int i = 0; i < gCustomButtonsCount; i++) {
+        if (!gCustomButtonPlaced[i]) {
+            unplaced++;
+        }
+    }
+    return gLayoutButtonsCount + unplaced;
 }
 
 int OriginalCommandId(int cmdId) {
@@ -447,13 +454,15 @@ bool gLayoutParsed = false;
 // out is how you hide it (issue #5095).
 void PopulateToolbarLayout() {
     Str setting = gSettings->toolbarCustomLayout;
-    if (gLayoutParsed && str::Eq(setting, gLayoutParsedFrom)) {
-        return;
-    }
+    // Custom actions can change even if the layout string does not.
+    // Always resolve them again when rebuilding the toolbar.
     str::Free(gLayoutParsedFrom);
     gLayoutParsedFrom = str::Dup(setting);
     gLayoutParsed = true;
     gLayoutButtonsCount = 0;
+    for (int i = 0; i < gCustomButtonsCount; i++) {
+        gCustomButtonPlaced[i] = false;
+    }
 
     auto addButton = [](const ToolbarButtonInfo& tbi) {
         if (gLayoutButtonsCount < kMaxLayoutButtons) {
@@ -499,7 +508,20 @@ void PopulateToolbarLayout() {
             }
         }
         if (!found) {
-            logf("ToolbarCustomLayout: no built-in toolbar button for '%s'\n", tok);
+            // Match custom button labels (spaces omitted in layout tokens).
+            // E.g. Name = Silent Print -> ToolbarCustomLayout = SilentPrint ...
+            for (int i = 0; i < gCustomButtonsCount; i++) {
+                Str label = gCustomButtons[i].toolTip;
+                TempStr compact = str::ReplaceTemp(label, StrL(" "), StrL(""));
+                if (str::EqI(tok, compact)) {
+                    found = &gCustomButtons[i];
+                    gCustomButtonPlaced[i] = true;
+                    break;
+                }
+            }
+        }
+        if (!found) {
+            logf("ToolbarCustomLayout: unknown toolbar button '%s'\n", tok);
             continue;
         }
         addButton(*found);
@@ -514,7 +536,16 @@ ToolbarButtonInfo& GetToolbarButtonInfoByIdx(int idx) {
     if (idx < gLayoutButtonsCount) {
         return gLayoutButtons[idx];
     }
-    return gCustomButtons[idx - gLayoutButtonsCount];
+    int remaining = idx - gLayoutButtonsCount;
+    for (int i = 0; i < gCustomButtonsCount; i++) {
+        if (!gCustomButtonPlaced[i]) {
+            if (remaining-- == 0) {
+                return gCustomButtons[i];
+            }
+        }
+    }
+    // Only reached for an out-of-range index.
+    return gCustomButtons[0];
 }
 
 void TogglePdfAnnotationsToolbar(MainWindow* win) {
