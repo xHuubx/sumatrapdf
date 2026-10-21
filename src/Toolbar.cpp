@@ -221,7 +221,8 @@ void UpdateToolbarButtonsToolTipsForWindow(MainWindow* win) {
         }
         VirtCtrl* w = ToolbarItemAt(win, i);
         if (w) {
-            w->SetTooltip(ToolbarTipTemp(bi.cmdId, bi.toolTip, true));
+            bool translate = !bi.svgIcon && !bi.isText && !FindCustomCommand(bi.cmdId);
+            w->SetTooltip(ToolbarTipTemp(bi.cmdId, bi.toolTip, translate));
         }
     }
     for (int i = 0; i < kPdfAnnotationButtonsCount; i++) {
