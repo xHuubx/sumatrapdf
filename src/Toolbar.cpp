@@ -221,7 +221,7 @@ void UpdateToolbarButtonsToolTipsForWindow(MainWindow* win) {
         }
         VirtCtrl* w = ToolbarItemAt(win, i);
         if (w) {
-            bool translate = !bi.svgIcon && !bi.isText && !FindCustomCommand(bi.cmdId);
+            bool translate = str::IsEmptyOrWhiteSpace(bi.svgIcon) && !bi.isText && !FindCustomCommand(bi.cmdId);
             w->SetTooltip(ToolbarTipTemp(bi.cmdId, bi.toolTip, translate));
         }
     }
