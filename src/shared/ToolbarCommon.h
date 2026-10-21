@@ -11,7 +11,7 @@ struct ToolbarButtonInfo {
     bool isText = false;
 };
 constexpr int kMaxCustomButtons = 127;
-constexpr int kMaxLayoutButtons = 64;
+constexpr int kMaxLayoutButtons = 192; // built-in layout plus explicitly positioned custom buttons
 
 // those are not real commands but we have to refer to toolbar buttons
 // is by a command. those are just background for area to be
