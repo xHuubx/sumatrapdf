@@ -534,7 +534,7 @@ void PopulateToolbarLayout() {
     }
     // A custom toolbar must not silently lose the built-in buttons if the
     // DefaultToolbar token was present but could not be expanded.
-    if (str::FindI(setting, StrL("DefaultToolbar")) && gLayoutButtonsCount <= gCustomButtonsCount + 1) {
+    if (str::EqI(setting, StrL("DefaultToolbar")) && gLayoutButtonsCount <= gCustomButtonsCount + 1) {
         logf("ToolbarCustomLayout: restoring missing DefaultToolbar buttons\n");
         useDefaultLayout();
     }
