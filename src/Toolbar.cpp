@@ -1042,6 +1042,24 @@ static void OnToolbarButtonClicked(MainWindow* win, VirtMouseEvent* ev) {
             tb->hoverPendingCmdId = cmdId;
         }
     }
+    // Give immediate feedback for the custom Silent Print toolbar action.
+    // This confirms the click, not successful printing by the printer.
+    for (int i = 0; i < TotalButtonsCount(); i++) {
+        const ToolbarButtonInfo& button = GetToolbarButtonInfoByIdx(i);
+        if (button.cmdId == cmdId && str::EqI(button.toolTip, StrL("Silent Print"))) {
+            NotificationCreateArgs args;
+            args.win = win;
+            args.corner = NotifCorner::TopLeft;
+            args.xMargin = 15;
+            args.yMargin = 15;
+            args.timeoutMs = 2000;
+            args.noClose = true;
+            args.plainText = true;
+            args.msg = StrL("Printopdracht gestart");
+            ShowNotification(args);
+            break;
+        }
+    }
     ToolbarPostCommand(win, cmdId);
     ev->didHandle = true;
 }
