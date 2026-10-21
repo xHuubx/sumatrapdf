@@ -214,8 +214,8 @@ void UpdateToolbarButtonsToolTipsForWindow(MainWindow* win) {
     if (!tb) {
         return;
     }
-    for (int i = 0; i < gLayoutButtonsCount; i++) {
-        const ToolbarButtonInfo& bi = gLayoutButtons[i];
+    for (int i = 0; i < TotalButtonsCount(); i++) {
+        const ToolbarButtonInfo& bi = GetToolbarButtonInfoByIdx(i);
         if (len(bi.toolTip) == 0 || bi.isText) {
             continue;
         }
@@ -945,7 +945,7 @@ TempStr ToolbarButtonsResultTemp(int* exitCodeOut) {
         Str text{};
         if (auto* b = AsVirtButton(w)) {
             text = b->s;
-        } else if (i >= gLayoutButtonsCount) {
+        } else if (GetToolbarButtonInfoByIdx(i).svgIcon || GetToolbarButtonInfoByIdx(i).isText) {
             text = GetToolbarButtonInfoByIdx(i).toolTip;
         } else if (w && w->tooltip) {
             text = w->tooltip;
@@ -2547,8 +2547,8 @@ static VirtCtrl* MakeToolbarSeparator(int rowDy) {
 
 // (re)build the tree of virtual controls the toolbar is made of, one per button
 static void BuildToolbarLayout(MainWindow* win) {
-    PopulateToolbarLayout();
     PopulateCustomToolbarButtons();
+    PopulateToolbarLayout();
 
     ToolbarVirt* tb = win->toolbarVirt;
     VecReset(tb->items);
@@ -2575,7 +2575,7 @@ static void BuildToolbarLayout(MainWindow* win) {
     for (int i = 0; i < n; i++) {
         const ToolbarButtonInfo& bi = GetToolbarButtonInfoByIdx(i);
         VirtCtrl* w = nullptr;
-        bool noTranslate = i >= gLayoutButtonsCount;
+        bool noTranslate = FindCustomCommand(bi.cmdId) != nullptr || bi.svgIcon || bi.isText;
         if (bi.cmdId == PageInfoId) {
             // Old toolbar: label HWND was text + kTextPaddingRight + kButtonSpacingX
             // (10dpi) so "Page:" and "/ N" were not flush against the edit.
