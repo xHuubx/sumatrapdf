@@ -1046,9 +1046,13 @@ static void OnToolbarButtonClicked(MainWindow* win, VirtMouseEvent* ev) {
     // This confirms the click, not successful printing by the printer.
     for (int i = 0; i < TotalButtonsCount(); i++) {
         const ToolbarButtonInfo& button = GetToolbarButtonInfoByIdx(i);
-        if (button.cmdId == cmdId && str::EqI(button.toolTip, StrL("Silent Print"))) {
+        // ExternalViewers use a custom command id; match the toolbar label
+        // with or without whitespace to tolerate settings naming variants.
+        TempStr compactTip = str::ReplaceTemp(button.toolTip, StrL(" "), StrL(""));
+        if (button.cmdId == cmdId && str::EqI(compactTip, StrL("SilentPrint"))) {
             NotificationCreateArgs args;
-            args.win = win;
+            args.hwndParent = win->hwndCanvas;
+            args.groupId = kNotifAdHoc;
             args.corner = NotifCorner::TopLeft;
             args.xMargin = 15;
             args.yMargin = 15;
