@@ -499,6 +499,12 @@ void PopulateToolbarLayout() {
             addButton({nullptr, PageInfoId, {}});
             continue;
         }
+        // Expand the standard toolbar at this position, so custom buttons can
+        // be placed before or after it without copying every built-in command.
+        if (str::EqI(tok, StrL("DefaultToolbar"))) {
+            useDefaultLayout();
+            continue;
+        }
         int cmdId = GetCommandIdByName(tok);
         const ToolbarButtonInfo* found = nullptr;
         for (int i = 0; i < kButtonsCount && cmdId != CmdNone; i++) {
